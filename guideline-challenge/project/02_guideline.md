@@ -1,6 +1,6 @@
 # Annotation guideline — Phân loại biển báo giao thông Việt Nam theo tầng và xác định biển áp dụng cho xe ego — tập trung biển nhỏ/xa, biển tạm công trường và giao lộ nhiều biển
 
-**Version:** v2.0
+**Version:** v3.0
 
 <!--
 v1 = bản nháp đầu; v2 sau calibration; v3 sau blind handoff. Mỗi lần tăng version ghi một dòng vào 08_revision_log.md.
@@ -14,7 +14,7 @@ File này là thứ nhóm peer nhận nguyên văn trong blind pack và là Guid
 
 | Bước | Làm gì | Mục |
 |---|---|---|
-| 1 | Quét cả ảnh ở zoom 100 %, rồi zoom 200–400 % dọc hai lề, dải phân cách, dầm cầu, rào công trường. Đánh dấu mọi thứ **giống biển** | 5, 6.1 |
+| 1 | Quét cả ảnh ở zoom 100 %, rồi zoom 200–400 % dọc hai lề, dải phân cách, dầm cầu, rào công trường, **cột đèn tín hiệu và biển đứng bên kia giao lộ**. Đánh dấu mọi thứ **giống biển** | 5, 6.1 |
 | 2 | Với từng vật: trong scope không (bảng mục 5)? Mặt biển cao ≥ 12 px không? Không → bỏ qua | 3, 5 |
 | 3 | Vẽ rectangle ôm mặt biển (không cột, không biển phụ) | 2, 3 |
 | 4 | Gán `sign_family` theo **hình dạng + màu** → `sign_class` chỉ khi **đọc được** (không đọc được = `unknown`) | 4, 6.1 |
@@ -165,6 +165,13 @@ Quy tắc đi kèm:
   không vẽ cũng chấp nhận; **đã vẽ thì bắt buộc tick** `needs_review`.
 - Nhiều biển xa dính nhau trên cùng một cột mà không tách được từng mặt: vẽ **1 box cho cả cụm**, mức C, tick
   `needs_review`.
+- **Đốm tối/mờ dưới gầm cầu, dưới dầm, trong bóng đổ:** trước khi xếp mức D, kiểm xem có thấy **mặt phẳng với viền
+  khép kín** (dấu hiệu chắc chắn là một mặt biển, dù không rõ mặt trước hay sau) hay chỉ là **khối bóng đổ không
+  viền** (kết cấu cầu, giá đỡ, dây điện). Có viền khép kín nhưng không chắc mặt nào → vẫn mức D (vẽ + `needs_review`),
+  **không tự suy diễn là mặt sau rồi IGNORE** chỉ vì nó tối. Không có viền, chỉ là mảng tối vô định hình → IGNORE,
+  không vẽ. Annotator đã tick `needs_review` cho một vật mức D không khớp gold vẫn được ghi nhận là làm đúng quy
+  trình (peer đã hedge đúng cách); owner xử lý sai lệch này ở revision log, không quy là lỗi coaching riêng của
+  annotator.
 
 ## 7. Ambiguity / escalation
 
@@ -185,6 +192,9 @@ Kiểm **theo thứ tự**, dừng ở dòng đầu tiên đúng:
 - Biển phụ: relevance **giống biển chính** nó gắn dưới.
 - Relevance gán theo vị trí nên vẫn gán được khi không đọc được biển (mức B/C).
 - Biển ở dòng 6 mà có **bản lặp** ở lề phải (cùng loại biển, cùng khoảng cách): cả hai `yes`.
+- **Biển xa và mờ không tự động là `unknown`:** "xa/mờ" chỉ ảnh hưởng `sign_class` (mục 6.1), không ảnh hưởng
+  `relevant_to_ego`. Nếu vị trí biển vẫn xác định rõ là lề phải đường ego (dòng 4) dù ở cuối một giao lộ dài, vẫn gán
+  `yes`. Chỉ gán `unknown` khi **vị trí** (không phải độ rõ nét) rơi vào dòng 6.
 
 **Biển tạm mâu thuẫn biển cố định** (ví dụ mũi tên đi vòng trái trên rào công trường và mũi tên đi vòng phải cố định ở
 dải phân cách): label **cả hai** với relevance theo vị trí như bình thường. Theo QCVN, người đi đường chấp hành **biển
@@ -226,6 +236,15 @@ Ví dụ từ ảnh calibration (lấy từ edge-case card của nhóm, không p
 | VN08 | Trụ bên trái: bảng thông tin nhà chờ xe buýt nhiều dòng chữ (số tuyến, giờ chạy) | Không box — bảng thông tin, không phải biển pictogram bến xe buýt | mục 5 |
 | VN06 | Lề phải: tròn đỏ cấm xe tải + tấm trắng ghi giờ bên dưới; biển xa bên kia ngã tư; bảng quảng cáo xanh lá trên nóc nhà | 2 box riêng: `prohibitory/no_truck/yes` và `supplementary/supplementary_plate/yes`. Biển xa ≥ 12 px: family theo hình, class `unknown` nếu không đọc được. Quảng cáo, bảng tên trạm xăng: IGNORE | mục 2, mục 5, mục 6.1 |
 
+Ví dụ rút ra từ blind handoff v2.0 (sau khi gold đã freeze — dùng để huấn luyện vòng sau, không phải câu hỏi calibration):
+
+| sample_id | Thấy gì | Expected output | Rule áp dụng |
+|---|---|---|---|
+| VN12 | Dưới gầm cầu, cạnh biển tròn nhỏ rõ, có một đốm tối bầu dục mờ (ảnh chụp ngược sáng) sát cùng cột | Đốm tối không thấy viền khép kín rõ ràng, giống khối bóng đổ của kết cấu cầu hơn là một mặt biển → **IGNORE**, không vẽ. Nếu zoom 400 % vẫn thấy một viền/mặt phẳng khép kín mà không chắc mặt nào → vẽ mức D + `needs_review` (mục 6.1) | mục 5, mục 6.1 (đốm tối dưới gầm cầu) |
+| VN16 | Tấm biển xanh nhỏ đứng trên cột cạnh đèn tín hiệu, bên kia một giao lộ rộng dưới gầm cầu vượt; đèn tín hiệu (2 đèn xanh) đứng gần một biển cấm tròn viền đỏ cùng khu vực tối | (1) Đèn tín hiệu giao thông luôn IGNORE (mục 5) dù ở vùng tối dễ nhầm hình tròn với biển — phân biệt bằng **màu phát sáng đều** (đèn) so với **viền sơn cố định** (biển). (2) Tấm xanh cạnh đèn tín hiệu bên kia giao lộ vẫn phải quét và LABEL nếu ≥ 12 px, dù ở xa và dễ bị bỏ sót khi mắt tập trung vào phần đường gần ego trước | mục 1 (bước quét), mục 5 |
+
+
+
 ## 10. Common mistakes
 
 1. Box gồm cả cột, giá rào hoặc biển phụ → box chỉ ôm mặt biển; biển phụ là box riêng.
@@ -250,6 +269,12 @@ Ví dụ từ ảnh calibration (lấy từ edge-case card của nhóm, không p
 19. Gán biển hai xe + số mét thành `no_overtaking` → `min_distance`.
 20. Đọc số trên biển tốc độ nhỏ < 20 px khi chữ số chưa rõ → `unknown` (mục 4, phép thử đọc được).
 21. Box biển nhỏ rộng hơn mặt biển vài px → zoom ≥ 200 % khi vẽ; biển < 30 px chỉ được lệch ≤ 2 px mỗi cạnh.
+22. Kéo box lệch sang biển bên cạnh khi nhiều biển đứng sát nhau trên cùng rào/cột (tam giác—tròn—tam giác…) → sau
+    khi vẽ, phóng to kiểm lại từng box có đúng ôm **mặt biển của chính nó**, không trùm một phần biển kế bên.
+23. Nhầm đèn tín hiệu giao thông (đặc biệt đèn xanh trong vùng tối/ngược sáng) với biển tròn → xem mục 5; đèn tín
+    hiệu **luôn** IGNORE, kể cả khi hình tròn phát sáng trông giống biển.
+24. Bỏ sót biển ở xa cuối giao lộ hoặc cạnh cột đèn tín hiệu bên kia đường vì mắt tập trung vào phần đường gần ego
+    trước → bước quét (mục "Quy trình mỗi ảnh", bước 1) nay gồm cả khu vực này.
 
 Chưa có ảnh ví dụ trong bộ example/calibration cho STOP, nhường đường, đường ưu tiên, tốc độ tối thiểu — nhận biết theo
 mô tả hình ở bảng mục 4.
